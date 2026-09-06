@@ -1,0 +1,657 @@
+/* ============================================================
+   Design tokens — change these and the whole app restyles.
+   Palette: soft mint background, sage / peach / lavender accents.
+   ============================================================ */
+:root {
+  --bg:            #F2F7F5;   /* page background — pale mint */
+  --card:          #FFFFFF;   /* all cards/panels */
+  --ink:           #33453F;   /* main text color */
+  --ink-soft:      #7C8F89;   /* secondary/muted text */
+  --sage:          #6FAE8E;   /* primary accent (workouts/buttons) */
+  --sage-dark:     #4F8E70;
+  --peach:         #F4A996;   /* accent for calories */
+  --peach-dark:    #E8836C;
+  --lavender:      #A6B3E8;   /* spare accent, used sparingly */
+  --lavender-dark: #7E8DD6;
+  --track:         #E4EEEA;   /* light gray-green for borders/backgrounds */
+  --danger-bg:     #FBE7E2;
+  --danger-text:   #C1512E;
+  --radius-lg:     22px;
+  --radius-md:     14px;
+  --shadow:        0 6px 20px rgba(63, 93, 82, 0.08);
+
+  /* Fonts — matched to <link> tags in the HTML's <head> */
+  --font-display: "Baloo 2", system-ui, sans-serif;   /* playful headings */
+  --font-body:    "Nunito Sans", system-ui, sans-serif; /* everyday text */
+  --font-mono:    "JetBrains Mono", monospace;          /* numbers/stats */
+}
+
+/* Reset: make width/height calculations predictable everywhere */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Center the whole app and cap its width so it doesn't stretch too wide on desktop */
+.app-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px 20px 80px;
+}
+
+/* ─── Header / nav ──────────────────────────────────────── */
+.app-header {
+  position: relative;   /* anchors the dropdown nav on small screens */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--sage-dark);
+}
+.brand-mark { font-size: 1.6rem; }
+
+/* The pill-shaped nav bar holding the 5 tab buttons + logout.
+   overflow-x:auto lets it scroll sideways on narrow phones instead
+   of squashing or wrapping awkwardly (on wide screens it just fits). */
+.tab-nav {
+  display: flex;
+  gap: 6px;
+  background: var(--card);
+  padding: 6px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  max-width: 100%;
+  -ms-overflow-style: none;
+  scrollbar-width: none; /* hide the scrollbar visually, still scrollable */
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;   /* keep each button's label on one line */
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.tab-btn:hover { background: var(--track); }
+.tab-btn.active { background: var(--sage); color: white; } /* JS adds/removes this class */
+
+/* The "Log out" link lives inside the same pill bar as the tabs, but
+   is styled a little differently (peach tint) so it reads as a
+   separate, less-frequent action rather than another page tab. */
+.tab-btn-logout {
+  text-decoration: none;
+  color: var(--peach-dark);
+  margin-left: 4px;
+}
+.tab-btn-logout:hover { background: var(--danger-bg); }
+
+/* Hamburger button: 3 stacked lines, hidden on wide screens (see the
+   media query below), shown only on narrow ones. */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  padding: 0;
+}
+.hamburger-line {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin: 0 auto;
+  background: var(--ink);
+  border-radius: 2px;
+}
+
+/* ─── Tab panels (pages) ─────────────────────────────────── */
+.tab-panel { display: none; animation: fadeIn 0.25s ease; }
+.tab-panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  margin: 4px 0 2px;
+}
+.wave { display: inline-block; animation: waveHand 1.6s ease-in-out infinite; }
+@keyframes waveHand { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(18deg); } }
+
+.page-subtitle {
+  color: var(--ink-soft);
+  margin: 0 0 22px;
+  font-weight: 600;
+}
+
+/* ─── Cards (the white rounded boxes used everywhere) ───── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 14px;
+}
+
+/* ─── Progress rings (the dashboard's signature element) ── */
+.ring-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.ring-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  flex: 1 1 200px;
+  max-width: 320px;
+  text-align: center;
+}
+
+.progress-ring { position: relative; width: 120px; height: 120px; margin: 0 auto; }
+.progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+.ring-track {
+  fill: none;
+  stroke: var(--track);
+  stroke-width: 12;
+}
+.ring-fill {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 327; /* 2 * pi * 52, matches the SVG's r=52 circles */
+  stroke-dashoffset: 327;
+  transition: stroke-dashoffset 0.7s ease;
+}
+.ring-fill--peach    { stroke: var(--peach-dark); }
+.ring-fill--mint     { stroke: var(--sage); }
+.ring-fill--lavender { stroke: var(--lavender-dark); }
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ring-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+.ring-caption { font-size: 0.75rem; color: var(--ink-soft); font-weight: 700; margin-top: 2px; }
+
+.ring-detail {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+/* Chart container: guarantees Chart.js has real space to draw into,
+   and lets it scroll sideways on very narrow screens */
+.chart-wrap {
+  width: 100%;
+  min-height: 220px;
+  overflow-x: auto;
+}
+
+/* ─── Forms (Log Workout, Goals) ─────────────────────────── */
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.form-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.form-card input,
+.form-card select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 11px 13px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--track);
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.form-card input:focus,
+.form-card select:focus { border-color: var(--sage); }
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primary { background: var(--sage); color: white; }
+.btn-primary:hover { background: var(--sage-dark); }
+
+.btn-ghost { background: var(--track); color: var(--ink); }
+.btn-ghost:hover { background: #d7e4de; }
+
+/* Small round buttons used for ✏️ edit / 🗑️ delete / ✓ save / ✕ cancel */
+.btn-icon, .icon-btn {
+  background: var(--track);
+  border: none;
+  border-radius: 10px;
+  padding: 6px 9px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 4px;
+}
+.btn-icon:hover, .icon-btn:hover { background: #d7e4de; }
+.btn-icon.danger:hover { background: var(--peach); }
+.save-btn { color: var(--sage-dark); }
+.save-btn:hover { background: var(--track); }
+.cancel-btn { color: var(--peach-dark); }
+
+.form-feedback {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--sage-dark);
+  min-height: 1em;
+}
+.profile-feedback { text-align: center; }
+
+/* ─── Stat pills (used on both Goals and Profile tabs) ──── */
+.current-goals-card { max-width: 420px; margin: 0 auto 20px; }
+.goal-stats {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+.goal-stat { text-align: center; }
+.goal-stat-value {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--sage-dark);
+}
+.goal-stat-label {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+/* ─── Profile card: avatar + name ────────────────────────── */
+.profile-card { max-width: 420px; margin: 0 auto 20px; text-align: center; }
+
+.avatar-wrap {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 12px;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--track);
+  box-shadow: var(--shadow);
+}
+.avatar-edit-btn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--card);
+  background: var(--sage);
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.avatar-edit-btn:hover { background: var(--sage-dark); }
+
+.profile-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+/* Grid of selectable avatar thumbnails, shown when the pencil on the
+   avatar is tapped. Each button is just an <img> with a border that
+   highlights when it's the selected one. */
+.avatar-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+.avatar-option {
+  border: 3px solid transparent;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--bg);
+  cursor: pointer;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.avatar-option img { width: 100%; height: 100%; display: block; }
+.avatar-option:hover { transform: scale(1.05); }
+.avatar-option.selected { border-color: var(--sage); }
+
+/* ─── Inline-editable detail rows (Profile tab) ──────────── */
+.detail-list { max-width: 420px; margin: 0 auto; padding: 8px 22px; }
+
+.detail-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--track);
+}
+.detail-row:last-child { border-bottom: none; }
+
+.detail-view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.detail-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.detail-value {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.detail-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-edit input {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--sage);
+  background: var(--bg);
+  outline: none;
+}
+
+/* ─── Tables (History + Weekly summary) ─────────────────── */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.history-table { width: 100%; border-collapse: collapse; min-width: 480px; }
+.history-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--track);
+  white-space: nowrap;
+}
+.history-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--track);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.history-table td.mono { font-family: var(--font-mono); }
+
+.empty-hint {
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 0 0;
+}
+
+/* ─── Edit-workout modal (popup) ─────────────────────────── */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(51, 69, 63, 0.35);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.modal-backdrop.active { display: flex; }
+
+.modal-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+}
+.modal-card form { display: flex; flex-direction: column; gap: 14px; }
+.modal-card label { display: flex; flex-direction: column; gap: 6px; font-weight: 800; font-size: 0.85rem; color: var(--ink-soft); }
+.modal-card input, .modal-card select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--track);
+  background: var(--bg);
+}
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+/* ─── Toast (small floating confirmation message) ───────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 100;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   Login / Sign up page
+   ============================================================ */
+.auth-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-shell {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-brand {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+.auth-brand .brand-mark { font-size: 2rem; }
+
+.auth-card { width: 100%; padding: 26px; }
+
+.auth-toggle {
+  display: flex;
+  background: var(--track);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.auth-toggle-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.auth-toggle-btn.active { background: var(--sage); color: white; }
+
+.auth-form { max-width: none; margin: 0; }
+
+.auth-flash {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.auth-flash p { margin: 0; }
+
+.auth-footnote {
+  margin-top: 18px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ─── Responsive: adjustments for tablet/small screens ──── */
+@media (max-width: 700px) {
+  .app-shell { padding: 16px 14px 70px; }
+  .card { padding: 18px; }
+  .page-title { font-size: 1.6rem; }
+}
+
+@media (max-width: 640px) {
+  .hamburger-btn { display: flex; }
+
+  .tab-nav {
+    display: none;
+    position: absolute;
+    top: 56px;
+    right: 0;
+    left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    z-index: 40;
+  }
+  .tab-nav.open { display: flex; }
+
+  .tab-btn { text-align: left; }
+  .tab-btn-logout { margin-left: 0; border-top: 1px solid var(--track); border-radius: 0; padding-top: 12px; }
+}
+
+@media (max-width: 600px) {
+  .ring-row { justify-content: center; }
+  .ring-card { flex-basis: 100%; max-width: 320px; }
+}
+
+@media (max-width: 420px) {
+  .page-title { font-size: 1.4rem; }
+  .progress-ring { width: 100px; height: 100px; }
+  .btn { width: 100%; }
+  .avatar-picker { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Respect users who've asked their OS to reduce motion/animations */
+@media (prefers-reduced-motion: reduce) {
+  .tab-panel, .wave, .ring-fill { animation: none !important; transition: none !important; }
+}

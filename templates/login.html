@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — Bloom</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+
+<div class="auth-shell">
+  <div class="brand auth-brand">
+    <span class="brand-mark">🌱</span>
+    <span class="brand-name">Bloom</span>
+  </div>
+
+  <div class="card auth-card">
+
+    <div class="auth-toggle">
+      <button type="button" class="auth-toggle-btn active" id="show-login-btn">Log in</button>
+      <button type="button" class="auth-toggle-btn" id="show-signup-btn">Sign up</button>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="auth-flash">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form class="form-card auth-form" id="login-form" action="{{ url_for('login_submit') }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>
+        Username
+        <input type="text" name="username" required autofocus>
+      </label>
+      <label>
+        Password
+        <input type="password" name="password" required>
+      </label>
+      <button type="submit" class="btn btn-primary">Log in 🌱</button>
+    </form>
+
+    <form class="form-card auth-form" id="signup-form" action="{{ url_for('signup_submit') }}" method="POST" style="display:none;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>
+        Choose a username
+        <input type="text" name="username" required minlength="3">
+      </label>
+      <label>
+        Choose a password
+        <input type="password" name="password" id="signup-password" required minlength="6">
+      </label>
+      <label>
+        Confirm password
+        <input type="password" name="confirm_password" id="signup-confirm-password" required minlength="6">
+      </label>
+      <button type="submit" class="btn btn-primary">Create account 🎉</button>
+    </form>
+
+  </div>
+
+  <p class="auth-footnote">Your data stays private to your account.</p>
+</div>
+
+<script>
+  const loginForm = document.getElementById("login-form");
+  const signupForm = document.getElementById("signup-form");
+  const showLoginBtn = document.getElementById("show-login-btn");
+  const showSignupBtn = document.getElementById("show-signup-btn");
+
+  showLoginBtn.addEventListener("click", () => {
+    loginForm.style.display = "flex";
+    signupForm.style.display = "none";
+    showLoginBtn.classList.add("active");
+    showSignupBtn.classList.remove("active");
+  });
+
+  showSignupBtn.addEventListener("click", () => {
+    signupForm.style.display = "flex";
+    loginForm.style.display = "none";
+    showSignupBtn.classList.add("active");
+    showLoginBtn.classList.remove("active");
+  });
+
+  // Confirm-password check: catches mismatches before the form even
+  // submits, using the browser's built-in validation bubble. The
+  // server also double-checks this (never trust client-only checks),
+  // but this gives instant feedback without a page reload.
+  const signupPassword = document.getElementById("signup-password");
+  const signupConfirmPassword = document.getElementById("signup-confirm-password");
+
+  function checkPasswordsMatch() {
+    if (signupPassword.value !== signupConfirmPassword.value) {
+      signupConfirmPassword.setCustomValidity("Passwords do not match.");
+    } else {
+      signupConfirmPassword.setCustomValidity("");
+    }
+  }
+  signupPassword.addEventListener("input", checkPasswordsMatch);
+  signupConfirmPassword.addEventListener("input", checkPasswordsMatch);
+</script>
+
+</body>
+</html>

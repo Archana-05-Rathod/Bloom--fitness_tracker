@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom Fitness Tracker</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+
+<!-- Google Fonts: Baloo 2 (playful headings) + Nunito Sans (body text) + JetBrains Mono (numbers) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js -- hosted locally in static/js/vendor/ so it never depends
+     on an external CDN (some networks block those). -->
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ─── Header: logo + collapsible nav (tabs + logout) ────────── -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">🌱</span>
+      <span class="brand-name">Bloom</span>
+    </div>
+
+    <!-- Hamburger button: only visible on small screens (see CSS).
+         Clicking it toggles the "open" class on #tab-nav via app.js. -->
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <!-- On wide screens this is a horizontal pill bar (normal CSS).
+         On narrow screens it's hidden until the hamburger opens it,
+         then it drops down as a vertical menu. -->
+    <nav class="tab-nav" id="tab-nav">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="log">Log Workout</button>
+      <button class="tab-btn" data-tab="history">History</button>
+      <button class="tab-btn" data-tab="goals">Goals</button>
+      <button class="tab-btn" data-tab="profile">Profile</button>
+      <a href="{{ url_for('logout') }}" class="tab-btn tab-btn-logout">🚪 Log out</a>
+    </nav>
+  </header>
+
+  <main class="app-main">
+
+    <!-- ═══════════════ DASHBOARD TAB ═══════════════ -->
+    <section class="tab-panel active" id="panel-dashboard">
+      <h1 class="page-title">Welcome, <span id="dash-username">{{ username }}</span> <span class="wave">👋</span></h1>
+      <p class="page-subtitle">Here's how your week is shaping up.</p>
+
+      <!-- Two progress rings: calories, workouts -->
+      <div class="ring-row">
+        <div class="ring-card">
+          <div class="progress-ring" data-ring="calorie">
+            <svg viewBox="0 0 120 120">
+              <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="ring-fill ring-fill--peach" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="ring-label">
+              <span class="ring-value" id="calorie-pct">0%</span>
+              <span class="ring-caption">🔥 Calories</span>
+            </div>
+          </div>
+          <p class="ring-detail" id="calorie-detail">0 / 0 kcal this week</p>
+        </div>
+
+        <div class="ring-card">
+          <div class="progress-ring" data-ring="workout">
+            <svg viewBox="0 0 120 120">
+              <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="ring-fill ring-fill--mint" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="ring-label">
+              <span class="ring-value" id="workout-pct">0%</span>
+              <span class="ring-caption">💪 Workouts</span>
+            </div>
+          </div>
+          <p class="ring-detail" id="workout-detail">0 / 0 sessions this week</p>
+        </div>
+      </div>
+
+      <!-- Line chart of calories burned over the last 14 days -->
+      <div class="card chart-card">
+        <h2 class="card-title">🔥 Calories burned — last 14 days</h2>
+        <div class="chart-wrap">
+          <canvas id="caloriesChart" height="90"></canvas>
+        </div>
+        <p class="empty-hint" id="chart-empty-hint" style="display:none;">Log a few workouts to see your trend here!</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════ LOG WORKOUT TAB ═══════════════ -->
+    <section class="tab-panel" id="panel-log">
+      <h1 class="page-title">Log a workout 📝</h1>
+      <p class="page-subtitle">Every session counts — even a short walk.</p>
+
+      <form class="card form-card" id="log-form">
+        <label>
+          Exercise type
+          <select id="log-exercise" required>
+            <option value="running">🏃 Running</option>
+            <option value="cycling">🚴 Cycling</option>
+            <option value="swimming">🏊 Swimming</option>
+            <option value="yoga">🧘 Yoga</option>
+            <option value="gym">🏋️ Gym</option>
+            <option value="walking">🚶 Walking</option>
+          </select>
+        </label>
+        <label>
+          Duration (minutes)
+          <input type="number" id="log-duration" min="1" step="1" placeholder="30" required>
+        </label>
+        <button type="submit" class="btn btn-primary">Log workout 🔥</button>
+        <p class="form-feedback" id="log-feedback"></p>
+      </form>
+    </section>
+
+    <!-- ═══════════════ HISTORY TAB ═══════════════ -->
+    <section class="tab-panel" id="panel-history">
+      <h1 class="page-title">Workout history 📜</h1>
+      <p class="page-subtitle">Edit or remove any past entry.</p>
+
+      <div class="card">
+        <div class="table-scroll">
+          <table class="history-table">
+            <thead>
+              <tr><th>Date</th><th>Exercise</th><th>Duration</th><th>Calories</th><th></th></tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <p class="empty-hint" id="history-empty-hint" style="display:none;">No workouts logged yet. Go log your first one!</p>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">📅 Weekly summary</h2>
+        <div class="table-scroll">
+          <table class="history-table">
+            <thead>
+              <tr><th>Week</th><th>Total kcal</th><th>Avg / session</th><th>Sessions</th></tr>
+            </thead>
+            <tbody id="summary-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ GOALS TAB ═══════════════ -->
+    <section class="tab-panel" id="panel-goals">
+      <h1 class="page-title">Set your goals 🎯</h1>
+      <p class="page-subtitle">Small, steady targets beat big, forgotten ones.</p>
+
+      <div class="card current-goals-card">
+        <h2 class="card-title">📌 Your current goals</h2>
+        <div class="goal-stats">
+          <div class="goal-stat">
+            <span class="goal-stat-value" id="current-goal-calories">--</span>
+            <span class="goal-stat-label">kcal / week</span>
+          </div>
+          <div class="goal-stat">
+            <span class="goal-stat-value" id="current-goal-workouts">--</span>
+            <span class="goal-stat-label">sessions / week</span>
+          </div>
+        </div>
+      </div>
+
+      <form class="card form-card" id="goals-form">
+        <label>
+          Weekly calorie goal (kcal)
+          <input type="number" id="goal-calories" min="0" step="50" placeholder="2000" required>
+        </label>
+        <label>
+          Weekly workout goal (sessions)
+          <input type="number" id="goal-workouts" min="0" step="1" placeholder="4" required>
+        </label>
+        <button type="submit" class="btn btn-primary">Save goals ✅</button>
+        <p class="form-feedback" id="goals-feedback"></p>
+      </form>
+    </section>
+
+    <!-- ═══════════════ PROFILE TAB ═══════════════ -->
+    <section class="tab-panel" id="panel-profile">
+      <h1 class="page-title">Your profile 🧑‍🎨</h1>
+      <p class="page-subtitle">Tap the pencil next to anything to edit it.</p>
+
+      <!-- Avatar + name card -->
+      <div class="card profile-card">
+        <div class="avatar-wrap">
+          <img class="avatar-img" id="profile-avatar-img" src="" alt="Your avatar">
+          <button class="avatar-edit-btn" id="avatar-edit-btn" type="button" aria-label="Change avatar">✏️</button>
+        </div>
+        <h2 class="profile-name" id="profile-display-name">--</h2>
+
+        <!-- Avatar picker: hidden until the pencil on the avatar is tapped.
+             Filled in by app.js from GET /api/avatars. -->
+        <div class="avatar-picker" id="avatar-picker" style="display:none;"></div>
+      </div>
+
+      <!-- Fun lifetime stats -->
+      <div class="card current-goals-card">
+        <div class="goal-stats">
+          <div class="goal-stat">
+            <span class="goal-stat-value" id="stat-total-workouts">--</span>
+            <span class="goal-stat-label">Workouts</span>
+          </div>
+          <div class="goal-stat">
+            <span class="goal-stat-value" id="stat-total-calories">--</span>
+            <span class="goal-stat-label">Calories</span>
+          </div>
+          <div class="goal-stat">
+            <span class="goal-stat-value" id="stat-bmi">--</span>
+            <span class="goal-stat-label">BMI</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inline-editable detail rows. Each row has a "view" mode
+           (label + value + pencil) and an "edit" mode (input + save/cancel),
+           only one of which is visible at a time -- app.js toggles this. -->
+      <div class="card detail-list">
+
+        <div class="detail-row" data-field="username">
+          <div class="detail-view">
+            <div class="detail-text">
+              <span class="detail-label">Username</span>
+              <span class="detail-value" id="view-username">--</span>
+            </div>
+            <button class="icon-btn edit-btn" data-field="username" aria-label="Edit username">✏️</button>
+          </div>
+          <div class="detail-edit" style="display:none;">
+            <input type="text" id="edit-input-username" minlength="3">
+            <button class="icon-btn save-btn" data-field="username" aria-label="Save">✓</button>
+            <button class="icon-btn cancel-btn" data-field="username" aria-label="Cancel">✕</button>
+          </div>
+        </div>
+
+        <div class="detail-row" data-field="age">
+          <div class="detail-view">
+            <div class="detail-text">
+              <span class="detail-label">Age</span>
+              <span class="detail-value" id="view-age">--</span>
+            </div>
+            <button class="icon-btn edit-btn" data-field="age" aria-label="Edit age">✏️</button>
+          </div>
+          <div class="detail-edit" style="display:none;">
+            <input type="number" id="edit-input-age" min="1" max="150">
+            <button class="icon-btn save-btn" data-field="age" aria-label="Save">✓</button>
+            <button class="icon-btn cancel-btn" data-field="age" aria-label="Cancel">✕</button>
+          </div>
+        </div>
+
+        <div class="detail-row" data-field="weight">
+          <div class="detail-view">
+            <div class="detail-text">
+              <span class="detail-label">Weight (kg)</span>
+              <span class="detail-value" id="view-weight">--</span>
+            </div>
+            <button class="icon-btn edit-btn" data-field="weight" aria-label="Edit weight">✏️</button>
+          </div>
+          <div class="detail-edit" style="display:none;">
+            <input type="number" id="edit-input-weight" min="1" max="500" step="0.1">            <button class="icon-btn save-btn" data-field="weight" aria-label="Save">✓</button>
+            <button class="icon-btn cancel-btn" data-field="weight" aria-label="Cancel">✕</button>
+          </div>
+        </div>
+
+        <div class="detail-row" data-field="height">
+          <div class="detail-view">
+            <div class="detail-text">
+              <span class="detail-label">Height (cm)</span>
+              <span class="detail-value" id="view-height">--</span>
+            </div>
+            <button class="icon-btn edit-btn" data-field="height" aria-label="Edit height">✏️</button>
+          </div>
+          <div class="detail-edit" style="display:none;">
+            <input type="number" id="edit-input-height" min="1" max="300" step="0.1">             <button class="icon-btn save-btn" data-field="height" aria-label="Save">✓</button>
+            <button class="icon-btn cancel-btn" data-field="height" aria-label="Cancel">✕</button>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="form-feedback profile-feedback" id="profile-feedback"></p>
+    </section>
+
+  </main>
+</div>
+
+<!-- ─── Edit-workout popup (shared by the History tab) ────── -->
+<div class="modal-backdrop" id="edit-modal-backdrop">
+  <div class="modal-card">
+    <h2 class="card-title">Edit workout</h2>
+    <form id="edit-form">
+      <input type="hidden" id="edit-id">
+      <label>
+        Exercise type
+        <select id="edit-exercise">
+          <option value="running">🏃 Running</option>
+          <option value="cycling">🚴 Cycling</option>
+          <option value="swimming">🏊 Swimming</option>
+          <option value="yoga">🧘 Yoga</option>
+          <option value="gym">🏋️ Gym</option>
+          <option value="walking">🚶 Walking</option>
+        </select>
+      </label>
+      <label>
+        Duration (minutes)
+        <input type="number" id="edit-duration" min="1" step="1">
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="edit-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Little floating message for quick confirmations (delete, save, etc.) -->
+<div class="toast" id="toast"></div>
+
+<!-- Our own JavaScript, loaded last so the page content exists before it runs -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

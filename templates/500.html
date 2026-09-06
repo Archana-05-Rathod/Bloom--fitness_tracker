@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Something went wrong — Bloom</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+
+<div class="auth-shell">
+  <div class="brand auth-brand">
+    <span class="brand-mark">🌱</span>
+    <span class="brand-name">Bloom</span>
+  </div>
+
+  <div class="card auth-card" style="text-align:center;">
+    <p style="font-size:3rem; margin:0 0 8px;">🌧️</p>
+    <h1 class="card-title" style="font-size:1.4rem;">Something went wrong</h1>
+    <p style="color:var(--ink-soft); font-weight:600; margin-bottom:20px;">
+      This one's on us. Your data is safe — try again in a moment.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary" style="text-decoration:none;">Back to Bloom</a>
+  </div>
+</div>
+
+</body>
+</html>
